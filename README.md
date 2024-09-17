@@ -1,4 +1,4 @@
-# ![logo](logo.png) <br> DragonCore
+# [![logo](logo.png)](https://github.com/V-Cyberpunk/DragonCore/raw/main/logo.png) <br> DragonCore
 
 DragonCore is a derivative of the last Dragonflight revision from TrinityCore and last Dragonflight RetailCore DB!<br>
 Target version is 10.2.7.<br>
