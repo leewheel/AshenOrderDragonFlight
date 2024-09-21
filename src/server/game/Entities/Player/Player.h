@@ -651,7 +651,7 @@ enum PlayerSlots
 static_assert(UF::size<decltype(UF::ActivePlayerData::InvSlots)>() == PLAYER_SLOT_END);
 
 #define INVENTORY_SLOT_BAG_0    255
-#define INVENTORY_DEFAULT_SIZE  16
+#define INVENTORY_DEFAULT_SIZE  20
 
 enum EquipmentSlots : uint8                                 // 19 slots
 {
@@ -2825,6 +2825,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
                 .ModifyValue(&UF::RestInfo::Threshold), threshold);
         }
 
+        uint32 GetLastTargetedGO() { return _lastTargetedGO; }
+        void SetLastTargetedGO(uint32 lastTargetedGO) { _lastTargetedGO = lastTargetedGO; }
+
         void SendPlayerChoice(ObjectGuid sender, int32 choiceId);
 
         bool MeetPlayerCondition(uint32 conditionId) const;
@@ -3294,6 +3297,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         uint32 _pendingBindTimer;
 
         uint32 _activeCheats;
+
+        uint32 _lastTargetedGO;
 
         std::unique_ptr<Garrison> _garrison;
 
