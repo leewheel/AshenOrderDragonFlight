@@ -2564,6 +2564,12 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.worldserver", "World initialized in {} minutes {} seconds", (startupDuration / 60000), ((startupDuration % 60000) / 1000));
 
     TC_METRIC_EVENT("events", "World initialized", "World initialized in " + std::to_string(startupDuration / 60000) + " minutes " + std::to_string((startupDuration % 60000) / 1000) + " seconds");
+
+    TC_LOG_INFO("server.worldserver", "此版本为Alpha I 版本，等同于风景端。本端免费！");
+
+
+
+
     return true;
 }
 
