@@ -43,7 +43,7 @@
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "RaceMask.h"
-#include "Realm.h"
+#include "RealmList.h"
 #include "ReputationMgr.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
@@ -1014,7 +1014,11 @@ bool ConditionMgr::IsObjectMeetToConditionList(ConditionSourceInfo& sourceInfo, 
                 auto ref = ConditionStore[CONDITION_SOURCE_TYPE_REFERENCE_CONDITION].find({ condition.ReferenceId, 0, 0 });
                 if (ref != ConditionStore[CONDITION_SOURCE_TYPE_REFERENCE_CONDITION].end())
                 {
-                    if (!IsObjectMeetToConditionList(sourceInfo, *ref->second))
+                    bool condMeets = IsObjectMeetToConditionList(sourceInfo, *ref->second);
+                    if (condition.NegativeCondition)
+                        condMeets = !condMeets;
+
+                    if (!condMeets)
                         itr->second = false;
                 }
                 else
@@ -1337,8 +1341,6 @@ void ConditionMgr::LoadConditions(bool isReload)
                 TC_LOG_ERROR("sql.sql", "Condition {} {} has useless data in value2 ({})!", rowType, iSourceTypeOrReferenceId, cond.ConditionValue2);
             if (cond.ConditionValue3)
                 TC_LOG_ERROR("sql.sql", "Condition {} {} has useless data in value3 ({})!", rowType, iSourceTypeOrReferenceId, cond.ConditionValue3);
-            if (cond.NegativeCondition)
-                TC_LOG_ERROR("sql.sql", "Condition {} {} has useless data in NegativeCondition ({})!", rowType, iSourceTypeOrReferenceId, cond.NegativeCondition);
         }
         else if (!isConditionTypeValid(&cond))//doesn't have reference, validate ConditionType
             continue;
@@ -3300,7 +3302,7 @@ static int32(* const WorldStateExpressionFunctions[WSE_FUNCTION_MAX])(Map const*
     // WSE_FUNCTION_REGION
     [](Map const* /*map*/, uint32 /*arg1*/, uint32 /*arg2*/) -> int32
     {
-        return realm.Id.Region;
+        return sRealmList->GetCurrentRealmId().Region;
     },
 
     // WSE_FUNCTION_CLOCK_HOUR
@@ -3348,7 +3350,7 @@ static int32(* const WorldStateExpressionFunctions[WSE_FUNCTION_MAX])(Map const*
     {
         time_t now = GameTime::GetGameTime();
         uint32 raidOrigin = 1135695600;
-        if (Cfg_RegionsEntry const* region = sCfgRegionsStore.LookupEntry(realm.Id.Region))
+        if (Cfg_RegionsEntry const* region = sCfgRegionsStore.LookupEntry(sRealmList->GetCurrentRealmId().Region))
             raidOrigin = region->Raidorigin;
 
         return (now - raidOrigin) / WEEK;

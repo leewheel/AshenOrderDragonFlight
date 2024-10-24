@@ -23,9 +23,20 @@ void Trinity::Banner::Show(char const* applicationName, void(*log)(char const* t
 {
     log(Trinity::StringFormat("{} ({})", GitRevision::GetFullVersion(), applicationName).c_str());
     log(R"(<Ctrl-C> to stop.)");
-    log(R"(World of Warcraft - Dragonflight 10.2.7 Server)""\n");
-    log(R"(Update/Download:https://pan.baidu.com/s/1mQn44iD52JUNA67ZXtFQnA?pwd=264j )");
-    log(R"(Dragon Flight ALpha I-2024-09-25)""\n");
+    log(R"(  ____                              )");
+    log(R"( |  _ \ _ __ __ _  __ _  ___  _ __  )");
+    log(R"( | | | | '__/ _` |/ _` |/ _ \| '_ \ )");
+    log(R"( | |_| | | | (_| | (_| | (_) | | | |)");
+    log(R"( |____/|_|  \__,_|\__, |\___/|_| |_|)");
+    log(R"(   ____           |___/             )");
+    log(R"(  / ___|___  _ __ ___               )");
+    log(R"( | |   / _ \| '__/ _ \              )");
+    log(R"( | |__| (_) | | |  __/              )");
+    log(R"(  \____\___/|_|  \___|              )");
+    log(R"(                                    )");
+    log(R"(World of Warcraft - Dragonflight 10.2.7 Server)");
+    log(R"(                                    )");
+
     if (logExtraInfo)
         logExtraInfo();
 }

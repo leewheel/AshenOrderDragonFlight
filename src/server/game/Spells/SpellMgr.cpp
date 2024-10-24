@@ -119,7 +119,7 @@ bool IsPartOfSkillLine(uint32 skillId, uint32 spellId)
 {
     SkillLineAbilityMapBounds skillBounds = sSpellMgr->GetSkillLineAbilityMapBounds(spellId);
     for (SkillLineAbilityMap::const_iterator itr = skillBounds.first; itr != skillBounds.second; ++itr)
-        if (itr->second->SkillLine == int32(skillId))
+        if (itr->second->SkillLine == skillId)
             return true;
 
     return false;
@@ -5047,6 +5047,15 @@ void SpellMgr::LoadSpellInfoCorrections()
     ApplySpellFix({ 111400 }, [](SpellInfo* spellInfo)
     {
         spellInfo->AttributesEx4 |= SPELL_ATTR4_AURA_IS_BUFF;
+    });
+
+    // Vengeful Retreat
+    ApplySpellFix({ 198793 }, [](SpellInfo* spellInfo)
+    {
+        ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+        {
+            spellEffectInfo->TriggerSpell = 0;
+        });
     });
 
     for (SpellInfo const& s : mSpellInfoMap)

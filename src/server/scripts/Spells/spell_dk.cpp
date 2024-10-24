@@ -71,6 +71,8 @@ enum DeathKnightSpells
     SPELL_DK_GLYPH_OF_FOUL_MENAGERIE            = 58642,
     SPELL_DK_GLYPH_OF_THE_GEIST                 = 58640,
     SPELL_DK_GLYPH_OF_THE_SKELETON              = 146652,
+    SPELL_DK_HEARTBREAKER_TALENT                = 221536,
+    SPELL_DK_HEARTBREAKER_ENERGIZE              = 210738,
     SPELL_DK_KILLING_MACHINE_PROC               = 51124,
     SPELL_DK_MARK_OF_BLOOD_HEAL                 = 206945,
     //SPELL_DK_NECROSIS_EFFECT                    = 216974, // dropped in BfA
@@ -84,6 +86,7 @@ enum DeathKnightSpells
     SPELL_DK_RUNIC_RETURN                       = 61258,
     //SPELL_DK_SLUDGE_BELCHER                     = 207313, // dropped in BfA
     //SPELL_DK_SLUDGE_BELCHER_SUMMON              = 212027, // dropped in BfA
+    SPELL_DK_SMOTHERING_OFFENSE                 = 435005,
     SPELL_DK_SOUL_REAPER                        = 343294,
     SPELL_DK_SOUL_REAPER_DAMAGE                 = 343295,
     SPELL_DK_DEATH_STRIKE_ENABLER               = 89832, // Server Side
@@ -143,7 +146,7 @@ public:
     bool Validate(SpellInfo const* spellInfo) override
     {
         return ValidateSpellInfo({ SPELL_DK_RUNIC_POWER_ENERGIZE })
-            && ValidateSpellEffect({ { spellInfo->Id, EFFECT_1 } });
+            && ValidateSpellEffect({ { spellInfo->Id, EFFECT_1 }, { SPELL_DK_ANTI_MAGIC_BARRIER, EFFECT_2 } });
     }
 
     bool Load() override
@@ -783,6 +786,32 @@ class spell_dk_glyph_of_scourge_strike_script : public SpellScript
     }
 };
 
+// Called by 206930 - Heart Strike
+class spell_dk_heartbreaker : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spell*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DK_HEARTBREAKER_TALENT, SPELL_DK_HEARTBREAKER_ENERGIZE });
+    }
+
+    bool Load() override
+    {
+        return GetCaster()->HasAura(SPELL_DK_HEARTBREAKER_TALENT);
+    }
+
+    void HandleEnergize(SpellEffIndex /*effIndex*/)
+    {
+        GetCaster()->CastSpell(GetCaster(), SPELL_DK_HEARTBREAKER_ENERGIZE, CastSpellExtraArgs()
+            .SetTriggeringSpell(GetSpell())
+            .SetTriggerFlags(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR));
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_dk_heartbreaker::HandleEnergize, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
 // 49184 - Howling Blast
 class spell_dk_howling_blast : public SpellScript
 {
@@ -805,18 +834,33 @@ class spell_dk_howling_blast : public SpellScript
 // 194878 - Icy Talons
 class spell_dk_icy_talons : public AuraScript
 {
-    bool CheckProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+    bool CheckProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo) const
     {
         if (Spell const* procSpell = eventInfo.GetProcSpell())
-            if (Optional<int32> cost = procSpell->GetPowerTypeCostAmount(POWER_RUNIC_POWER))
-                return cost > 0;
-
+            return procSpell->GetPowerTypeCostAmount(POWER_RUNIC_POWER) > 0;
         return false;
     }
-
     void Register() override
     {
         DoCheckEffectProc += AuraCheckEffectProcFn(spell_dk_icy_talons::CheckProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE);
+    }
+};
+
+// 194879 - Icy Talons
+class spell_dk_icy_talons_buff : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DK_SMOTHERING_OFFENSE });
+    }
+    void HandleSmotheringOffense(WorldObject*& target) const
+    {
+        if (!GetCaster()->HasAura(SPELL_DK_SMOTHERING_OFFENSE))
+            target = nullptr;
+    }
+    void Register() override
+    {
+        OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_dk_icy_talons_buff::HandleSmotheringOffense, EFFECT_1, TARGET_UNIT_CASTER);
     }
 };
 
@@ -1228,8 +1272,10 @@ void AddSC_deathknight_spell_scripts()
     RegisterSpellScript(spell_dk_frost_fever_proc);
     RegisterSpellScript(spell_dk_ghoul_explode);
     RegisterSpellScript(spell_dk_glyph_of_scourge_strike_script);
+    RegisterSpellScript(spell_dk_heartbreaker);
     RegisterSpellScript(spell_dk_howling_blast);
     RegisterSpellScript(spell_dk_icy_talons);
+    RegisterSpellScript(spell_dk_icy_talons_buff);
     RegisterSpellScript(spell_dk_mark_of_blood);
     RegisterSpellScript(spell_dk_obliteration);
     RegisterSpellScript(spell_dk_permafrost);
